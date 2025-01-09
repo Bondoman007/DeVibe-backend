@@ -1,31 +1,29 @@
 const express = require('express')
-const app = express()
 const {authAdmin} = require("./middleware/auth")
+const {connectDB} = require("./config/database")
+const User = require("./models/user")
+const app = express()
 
-app.use("/admin",(req,res,next)=>{
-    console.log('admin auth')
-    const token="xyz"
-    const authenticateToken = token==="xyz"
-    if(authenticateToken){
-        next()
-    }else{
-        res.status(401).send('auth failed')
-    }
-
+app.post("/signup", async (req,res)=>{
+    const user = new User({
+        firstName : "anirudhra",
+        lastName : "chauhan",
+        emailId : "ani000@gmail.com",
+        password : "1238",
+        age : 21,
+        gender : "male"
+    })
+    await user.save()
+    res.send("user saved")
 })
 
- app.get("/user", authAdmin)
- 
-
-app.get("/admin/getalldata",(req,res,next)=>{
-    res.send('test')
+connectDB()
+  .then(()=>{
+    console.log("Database connected")
+    app.listen(3000, () => {
+        console.log("server is listening port 3000")
+    })
 })
-app.get("/id/:userId/:name/:password",(req,res,next)=>{
-    console.log(req.params)
-    res.send('id verified')
-},)
-
-
-app.listen(3000, () => {
-    console.log("server is listening port 3000")
+.catch((err)=>{
+    console.log("database cannot be connected")
 })
