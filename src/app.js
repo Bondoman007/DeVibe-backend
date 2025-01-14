@@ -5,6 +5,7 @@ const User = require("./models/user")
 const app = express()
 
 app.use(express.json())
+//NEVER TRUST req.body always validate your data
 app.post("/signup", async (req,res)=>{
     const user = new User(req.body)
     try{
@@ -48,10 +49,20 @@ app.delete("/user", async (req,res)=>{
     }
 })
 
-app.patch("/user",async (req,res)=>{
-    const userId = req.body.userId
+app.patch("/user/:userId",async (req,res)=>{
+    const userId = req.params.userId
     const data = req.body
     try{
+        ALLOWED = ["gender","age","skills","photoUrl"]
+        const isUpdateAllowed = Object.keys(data).every((x) =>
+            ALLOWED.includes(x)
+        )
+        if(!isUpdateAllowed){
+            throw new Error("update not allowed")
+        }
+        if(data?.skills.length > 10){
+            throw new Error("skills cannot be more than 10")
+        }
         const user = await User.findByIdAndUpdate({_id: userId},data, {
             returnDocument:"before", 
             runValidators:true

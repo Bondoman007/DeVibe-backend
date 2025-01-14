@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-
+const validator = require('validator');
 const userSchema = mongoose.Schema({
     firstName: {
         type: String,
@@ -14,13 +14,24 @@ const userSchema = mongoose.Schema({
     },
     emailId: {
         type: String,
+        lowercase:true,
         required: true,
         unique: true,
-        trim: true
+        trim: true,
+        validate(value){
+            if(!validator.isEmail(value)){
+                throw new Error("invalid email address" + value)
+            }
+        }
     },
     password: {
         type: String,
-        required: true
+        required: true,
+        validate(value){
+            if(!validator.isStrongPassword(value)){
+                throw new Error("ENTER A STRONG PASSWORD")
+            }
+        }
     },
     age: {
         type: Number
@@ -35,7 +46,7 @@ const userSchema = mongoose.Schema({
     },
     photoUrl: {
         type: String,
-        default: "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.shutterstock.com%2Fsearch%2Fblank-profile-picture&psig=AOvVaw3SpBx7uM8Hv3xLb9D-HFza&ust=1736893891244000&source=images&cd=vfe&opi=89978449&ved=0CBQQjRxqFwoTCKCdlpLg84oDFQAAAAAdAAAAABAE"
+        default: "https://cdn.vectorstock.com/i/1000v/08/19/gray-photo-placeholder-icon-design-ui-vector-35850819.avif"
     },
     about: {  
         type: String,
