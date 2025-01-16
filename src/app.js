@@ -1,20 +1,63 @@
-const express = require('express')
-const {authAdmin} = require("./middleware/auth")
+const express = require("express")
+const {userAuth} = require("./middleware/auth")
 const {connectDB} = require("./config/database")
 const User = require("./models/user")
 const app = express()
-
+const bcyrpt = require("bcrypt")
+const cookieParser = require("cookie-parser")
+const jwt = require("jsonwebtoken")
 app.use(express.json())
+app.use(cookieParser())
 //NEVER TRUST req.body always validate your data
 app.post("/signup", async (req,res)=>{
-    const user = new User(req.body)
+    
+    const {password,firstName,lastName,emailId,gender,age} = req.body
     try{
+        //encrypting the password 
+        const hashPassword = await bcyrpt.hash(password,10)
+        console.log(hashPassword)
+        const user = new User({
+            firstName,
+            lastName,
+            emailId,
+            password: hashPassword,
+            gender,
+             age,
+        }) 
         await user.save()
         res.send("user saved")
     }catch(err){
-        res.status(400).send("something went wrong:"+err)
+        res.status(400).send("ERROR:"+err.message)
     }
 })
+app.get("/profile",userAuth,async (req,res)=>{
+    
+    const user = req.user
+    res.send(user)
+})
+app.post("/login", async (req,res)=>{
+    const { emailId , password} = req.body
+    try{
+        const user = await User.findOne({emailId : emailId})
+        if(!user){
+            throw new Error("Invalid credentials")
+        }
+        
+        const cmp = await user.validatePassword(password)
+        if(!cmp){
+            throw new Error("Invalid credentials")
+        }else{
+            const token = await user.getJWT()
+            res.cookie("token",token,{
+                expires : new Date(Date.now() + 1 * 3600000)
+            })
+            res.send("user login succesfully")
+        }
+    }catch(err){
+        res.status(400).send("ERROR:"+err)
+    }
+})
+
 app.get("/user", async (req,res)=>{
     const userEmail = req.body.emailId
     try{
@@ -23,9 +66,8 @@ app.get("/user", async (req,res)=>{
             res.status(400).send("something went wrong")
         }else{
             res.send(users)
-        }
-       
-    } catch(err){
+        }       
+    }catch(err){
         res.status(400).send("something went wrong")
     }
 

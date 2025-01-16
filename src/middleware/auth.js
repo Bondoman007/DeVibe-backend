@@ -1,15 +1,30 @@
-const authAdmin = (req,res,next)=>{
-    console.log('admin auth')
-    const token="xyz"
-    const authenticateToken = token==="xyz"
-    if(authenticateToken){
-        next()
-    }else{
-        res.status(401).send('auth failed')
+const jwt = require("jsonwebtoken")
+const User = require("../models/user")
+
+const userAuth = async (req,res,next)=>{
+   try{
+    const cookie = req.cookies
+    const {token} = cookie
+    if(!token){
+        throw new Error("Invalid token!!!")
     }
+    const decodedData = await jwt.verify(token,"DEV@TINDER")
+    const {_id} = decodedData
+   
+    
+    const user = await User.findById(_id)
+    if(!user){
+        throw new Error("Please logon again")
+    }
+    req.user = user
+    console.log("auth done!")
+    next()
+   }catch(err){
+     res.status(400).send("ERROR:"+err.message)
+   }
 
 }
 
 module.exports = {
-    authAdmin
+    userAuth
 }
