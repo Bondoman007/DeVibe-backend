@@ -10,7 +10,6 @@ const userAuth = async (req,res,next)=>{
     }
     const decodedData = await jwt.verify(token,"DEV@TINDER")
     const {_id} = decodedData
-   
     
     const user = await User.findById(_id)
     if(!user){
