@@ -50,6 +50,7 @@ router.get("/user/connections", userAuth, async (req, res) => {
     if (!connections) {
       throw new Error("No connections found");
     }
+
     const data = connections.map((row) => {
       if (row.fromUserId._id.toString() === loggedInUser._id.toString()) {
         return row.toUserId;

@@ -31,7 +31,7 @@ router.post("/signup", async (req, res) => {
   try {
     //encrypting the password
     const hashPassword = await bcyrpt.hash(password, 10);
-    console.log(hashPassword);
+
     const user = new User({
       firstName,
       lastName,
